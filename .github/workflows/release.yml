@@ -98,11 +98,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ohif.zip
-          path: dist/ohif.zip
+          path: MONAILabel/dist/ohif.zip
 
       - name: Upload monailabel artifacts
         uses: actions/upload-artifact@v4
         with:
             name: monailabel-${{ github.event.inputs.tag }}.whl
-            path: dist/monailabel*.whl
+            path: MONAILabel/dist/monailabel*.whl
 
