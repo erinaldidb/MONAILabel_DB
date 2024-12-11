@@ -86,7 +86,7 @@ jobs:
           echo $(pwd)/MONAILabel/runtests.sh --pytype
       - name: Unit Tests
         run: |
-          $(pwd)/MONAILabelruntests.sh --unittests
+          $(pwd)/MONAILabel/runtests.sh --unittests
       - name: Upload coverage
         uses: codecov/codecov-action@v5
         with:
