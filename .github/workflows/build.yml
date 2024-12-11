@@ -80,18 +80,18 @@ jobs:
           pip install -r requirements-dev.txt
       - name: Clean
         run: |
-          $(pwd)/runtests.sh --clean
+          $(pwd)/MONAILabel/runtests.sh --clean
       - name: PyType
         run: |
-          echo $(pwd)/runtests.sh --pytype
+          echo $(pwd)/MONAILabel/runtests.sh --pytype
       - name: Unit Tests
         run: |
-          $(pwd)/runtests.sh --unittests
+          $(pwd)/MONAILabelruntests.sh --unittests
       - name: Upload coverage
         uses: codecov/codecov-action@v5
         with:
           fail_ci_if_error: false
-          file: ./coverage.xml
+          file: ./MONAILabel/coverage.xml
 
   packaging:
     runs-on: ubuntu-latest
@@ -134,7 +134,8 @@ jobs:
           git checkout ${{ github.event.inputs.tag }}
       - name: Patch with Databricks Integration
         run: |
-          cp ../monailabel/datastore/databricks_client.py monailabel/datastore/databricks_client.py
+          cd MONAILabel
+          cp ../monailabel_datastore_databricks_client.py monailabel/datastore/databricks_client.py
           cp ../plugins/ohifv3/build.sh plugins/ohifv3/build.sh
           git apply ../monailabel_config.py.patch
           git apply ../monailabel_datastore_dicom.py.patch
@@ -143,11 +144,13 @@ jobs:
           git apply ../monailabel_main.py.patch
       - name: Build Package
         run: |
+          cd MONAILabel
           ./runtests.sh --clean
           BUILD_OHIF=true python setup.py sdist bdist_wheel
           ls -l dist
       - name: Verify Package
         run: |
+          cd MONAILabel
           tmp_dir=$(mktemp -d)
           cp dist/monailabel* "$tmp_dir"
           rm -r build monailabel*.egg-info
@@ -173,4 +176,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dist
-          path: dist/
+          path: MONAILabel/dist/
