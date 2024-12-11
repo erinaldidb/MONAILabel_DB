@@ -72,6 +72,7 @@ jobs:
           ls -l dist
       - name: Verify Package
         run: |
+          cd MONAILabel
           tmp_dir=$(mktemp -d)
           cp dist/monailabel* "$tmp_dir"
           rm -r build monailabel*.egg-info
