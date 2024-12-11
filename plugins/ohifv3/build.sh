@@ -41,14 +41,14 @@ cd ..
 
 git apply ../extensions.patch
 
-cp ../config/databricks.js platform/app/public/config/databricks.js
+cp ${curr_dir}/../plugins/ohifv3/config/databricks.js platform/app/public/config/databricks.js
 
 #copy Databricks Pixels integration
 echo "Installing Databricks Integration"
 mkdir ./extensions/default/src/DatabricksPixelsDicom/
-cp ${curr_dir}../plugins/ohifv3/extensions/default/src/DatabricksPixelsDicom/index.js ./extensions/default/src/DatabricksPixelsDicom/index.js
-cp ${curr_dir}../plugins/ohifv3/extensions/default/src/DatabricksPixelsDicom/utils.js ./extensions/default/src/DatabricksPixelsDicom/utils.js
-cp ${curr_dir}../plugins/ohifv3/extensions/default/src/getDataSourcesModule.js ./extensions/default/src/getDataSourcesModule.js
+cp ${curr_dir}/../plugins/ohifv3/extensions/default/src/DatabricksPixelsDicom/index.js ./extensions/default/src/DatabricksPixelsDicom/index.js
+cp ${curr_dir}/../plugins/ohifv3/extensions/default/src/DatabricksPixelsDicom/utils.js ./extensions/default/src/DatabricksPixelsDicom/utils.js
+cp ${curr_dir}/../plugins/ohifv3/extensions/default/src/getDataSourcesModule.js ./extensions/default/src/getDataSourcesModule.js
 
 yarn config set workspaces-experimental true
 yarn install
