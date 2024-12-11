@@ -97,8 +97,8 @@ jobs:
       - name: Upload ohif artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ohif-${{ github.event.inputs.tag }}.zip
-          path: MONAILabel/dist/ohif.zip
+          name: ohif-${{ github.event.inputs.tag }}
+          path: MONAILabel/monailabel/endpoints/static/ohif/
 
       - name: Upload monailabel artifacts
         uses: actions/upload-artifact@v4
