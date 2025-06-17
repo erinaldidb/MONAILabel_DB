@@ -12,3 +12,4 @@ index 4d05c4e..fbcc344 100644
  uvicorn==0.29.0
  pydantic==2.7.0
  pydantic-settings==2.2.1
+ 
