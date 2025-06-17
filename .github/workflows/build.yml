@@ -54,6 +54,7 @@ jobs:
           cd MONAILabel
           git checkout ${{ github.event.inputs.tag }}
           python -m pip install --upgrade pip wheel
+          git apply --reject --whitespace=fix ../monailabel_requirements.txt.patch
           pip install -r requirements.txt
 
   build:
@@ -77,6 +78,7 @@ jobs:
           rm -rf /opt/hostedtoolcache
           sudo apt-get install openslide-tools -y
           python -m pip install --upgrade pip wheel
+          git apply --reject --whitespace=fix ../monailabel_requirements.txt.patch
           pip install -r requirements-dev.txt
       - name: Clean
         run: |
