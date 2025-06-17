@@ -1,0 +1,14 @@
+diff --git a/requirements.txt b/requirements.txt
+index 4d05c4e..fbcc344 100644
+--- a/requirements.txt
++++ b/requirements.txt
+@@ -9,7 +9,8 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
+-monai[nibabel, skimage, pillow, tensorboard, gdown, ignite, torchvision, itk, tqdm, lmdb, psutil, openslide, fire, mlflow]>=1.4.0
++monai[nibabel, skimage, pillow, tensorboard, gdown, ignite, torchvision, tqdm, lmdb, psutil, openslide, fire, mlflow]>=1.4.0
++itk==5.4.3
+ uvicorn==0.29.0
+ pydantic==2.7.0
+ pydantic-settings==2.2.1

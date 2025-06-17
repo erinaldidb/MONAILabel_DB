@@ -63,6 +63,7 @@ jobs:
             git apply --reject --whitespace=fix ../monailabel_datastore_utils_dicom.py.patch
             git apply --reject --whitespace=fix ../monailabel_interfaces_app.py.patch
             git apply --reject --whitespace=fix ../monailabel_main.py.patch
+            git apply --reject --whitespace=fix ../monailabel_requirements.txt.patch
             echo "Patching completed"
       - name: Build Package
         run: |
