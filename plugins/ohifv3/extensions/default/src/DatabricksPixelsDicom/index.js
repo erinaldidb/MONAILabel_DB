@@ -21,6 +21,42 @@ const metadataProvider = OHIF.classes.MetadataProvider;
 const { DicomMetaDictionary, DicomDict } = dcmjs.data;
 const { naturalizeDataset, denaturalizeDataset } = DicomMetaDictionary;
 
+const END_MODALITIES = {
+  SR: true,
+  SEG: true,
+  DOC: true,
+};
+
+const compareValue = (v1, v2, def = 0) => {
+  if (v1 === v2) {
+    return def;
+  }
+  if (v1 < v2) {
+    return -1;
+  }
+  return 1;
+};
+
+// Sorting SR modalities to be at the end of series list
+const customSort = (seriesA, seriesB) => {
+  const instanceA = seriesA.instances[0];
+  const instanceB = seriesB.instances[0];
+  const modalityA = instanceA.Modality;
+  const modalityB = instanceB.Modality;
+
+  const isEndA = END_MODALITIES[modalityA];
+  const isEndB = END_MODALITIES[modalityB];
+
+  if (isEndA && isEndB) {
+    // Compare by series date
+    return compareValue(instanceA.SeriesNumber, instanceB.SeriesNumber);
+  }
+  if (!isEndA && !isEndB) {
+    return compareValue(instanceB.SeriesNumber, instanceA.SeriesNumber);
+  }
+  return isEndA ? -1 : 1;
+};
+
 function createDatabricksPixelsDicom(dcmConfig, servicesManager) {
 
   let dicomConfig,
@@ -127,7 +163,9 @@ function createDatabricksPixelsDicom(dcmConfig, servicesManager) {
             aSeries.instances.forEach((instance, index) => {
 
               const naturalizedInstancesMetadata = naturalizeDataset(instance.meta);
-
+              
+              naturalizedInstancesMetadata.InstanceNumber = instance.GeneratedInstanceNumber
+              //delete naturalizedInstancesMetadata.InstanceNumber
               naturalizedInstancesMetadata.url = "dicomweb:" + databricksClient.defaults.baseURL + "fs/files/" + instance.relative_path
 
               const {
@@ -188,17 +226,17 @@ function createDatabricksPixelsDicom(dcmConfig, servicesManager) {
     store: {
       dicom: async naturalizedReport => {
 
-        naturalizedReport.SeriesNumber = "9999" //hack for monailabel ordering fix
+        // naturalizedReport.SeriesNumber = "9999" //hack for monailabel ordering fix
         const reportBlob = dcmjs.data.datasetToBlob(naturalizedReport);
-        var  instance = {}
-        if (naturalizedReport.ConceptNameCodeSequence?.CodeValue == '126000'){
-        //this is a measurement
+        var instance = {}
+        if (naturalizedReport.ConceptNameCodeSequence?.CodeValue == '126000') {
+          //this is a measurement
           instance = DicomMetadataStore.getInstance(
             naturalizedReport.StudyInstanceUID,
             naturalizedReport.CurrentRequestedProcedureEvidenceSequence[0].ReferencedSeriesSequence.SeriesInstanceUID,
             naturalizedReport.CurrentRequestedProcedureEvidenceSequence[0].ReferencedSeriesSequence.ReferencedSOPSequence.ReferencedSOPInstanceUID
           );
-        }else {
+        } else {
           //this is a segmentation
           instance = DicomMetadataStore.getInstance(
             naturalizedReport.StudyInstanceUID,
@@ -222,7 +260,7 @@ function createDatabricksPixelsDicom(dcmConfig, servicesManager) {
         })
 
         if (response.status == 204) {
-          console.log("File saved correclty in volume path", naturalizedReport.filePath)
+          console.log("File saved correclty in volume path", filePath)
         }
 
         var meta = denaturalizeDataset(naturalizedReport)
@@ -304,6 +342,13 @@ function createDatabricksPixelsDicom(dcmConfig, servicesManager) {
         StudyInstanceUIDs && Array.isArray(StudyInstanceUIDs)
           ? StudyInstanceUIDs
           : [StudyInstanceUIDs];
+
+      StudyInstanceUIDsAsArray.forEach(StudyInstanceUID => {
+        const study = DicomMetadataStore.getStudy(StudyInstanceUID);
+        if (study) {
+          study.series = study.series.sort(customSort);
+        }
+      });
 
       return StudyInstanceUIDsAsArray;
     },

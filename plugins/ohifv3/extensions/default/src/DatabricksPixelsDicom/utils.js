@@ -11,21 +11,19 @@ function processResults(qidoStudies) {
   }
 
   const studies = [];
-
-  qidoStudies.forEach(qidoStudy =>
+  qidoStudies.forEach(qidoStudy => {
     studies.push({
       studyInstanceUid: getString(JSON.parse(qidoStudy[0])),
       date: qidoStudy[1] || '', // YYYYMMDD
       time: qidoStudy[2] || '', // HHmmss.SSS (24-hour, minutes, seconds, fractional seconds)
       accession: qidoStudy[3] || '', // short string, probably a number?
       mrn: qidoStudy[4] || '', // medicalRecordNumber
-      patientName: utils.formatPN(getName(JSON.parse(qidoStudy[5]))) || '',
+      patientName: qidoStudy[5].includes("Alphabetic") ? utils.formatPN(getName(JSON.parse(qidoStudy[5]))) : "",
       description: getString(JSON.parse(qidoStudy[6])) || '',
       modalities: qidoStudy[7] + qidoStudy[8],
       instances: Number(JSON.parse(qidoStudy[9])) || 1, // number
     })
-  );
-
+  });
   return studies;
 }
 
@@ -43,10 +41,16 @@ function processSeriesMetadataResults(qidoSeriesMetadata) {
       instances: JSON.parse(currentSerie[2])
     }
 
+    serie.instances.sort((a, b) => {
+      const sliceLocA = parseInt(JSON.parse(a.meta)['00201041']?.Value?.[0]) || 0;
+      const sliceLocB = parseInt(JSON.parse(b.meta)['00201041']?.Value?.[0]) || 0;
+      return sliceLocA - sliceLocB;
+    });
+
     serie.instances.forEach((instance, index) => {
       instance.StudyInstanceUID = serie.StudyInstanceUid
       instance.SeriesInstanceUID = serie.SeriesInstanceUid
-      instance.InstanceNumber = index
+      instance.GeneratedInstanceNumber = index
       instance.numImageFrames = serie.instances.length
       instance.meta = JSON.parse(instance.meta)
     });
@@ -80,8 +84,8 @@ export function processSeriesResults(qidoSeries) {
 
 async function qidoStudiesSearch(databricksClient, warehouseId, pixelsTable, origParams) {
 
-  var limit = origParams.resultsPerPage ? `LIMIT ${origParams.resultsPerPage}` : "";
-  var offset = origParams.offset ? `OFFSET ${origParams.offset}` : "";
+  //var limit = origParams.resultsPerPage ? `LIMIT ${origParams.resultsPerPage}` : "";
+  //var offset = origParams.offset ? `OFFSET ${origParams.offset}` : "";
 
   let filters = ["1=1"];
   if ("patientName" in origParams) {
@@ -123,8 +127,6 @@ async function qidoStudiesSearch(databricksClient, warehouseId, pixelsTable, ori
        FROM ${pixelsTable}
        WHERE ${filters.join(" AND ")}
        GROUP BY studyInstanceUid, date, time, accession, mrn
-       ${limit}
-       ${offset}
        `,
     "wait_timeout": "30s",
     "on_wait_timeout": "CANCEL"

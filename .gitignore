@@ -166,3 +166,4 @@ tests/data
 # Packages
 node_modules
 yarn.lock
+.databricks_ohif_config

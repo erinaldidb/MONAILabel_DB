@@ -19,8 +19,16 @@ window.config = {
         friendlyName: 'Databricks Pixels Dicom',
         token: "TOKEN_REPLACED_BY_DBTUNNEL",
         httpPath: "/sql/1.0/warehouses/{SQL_WAREHOUSE}",
-        serverHostname: "{ROUTER_BASENAME}/sqlwarehouse",
+        //serverHostname: "{ROUTER_BASENAME}/sqlwarehouse",
+        serverHostname: "{HOST_NAME}",
         pixelsTable: "{PIXELS_TABLE}",
+      },
+    },
+    {
+      namespace: '@ohif/extension-default.dataSourcesModule.dicomlocal',
+      sourceName: 'dicomlocal',
+      configuration: {
+        friendlyName: 'dicom local',
       },
     },
   ],
