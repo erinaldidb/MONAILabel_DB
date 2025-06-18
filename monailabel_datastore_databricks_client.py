@@ -26,13 +26,13 @@ class DatabricksClient(DICOMwebClient):
         filters_list = ["1=1"]
 
         if "Modality" in search_filters:
-            filters_list.append(f"meta:['00080060'].Value[0] = '{search_filters['Modality']}'")
+            filters_list.append(f"meta:['00080060'].Value[0]::String = '{search_filters['Modality']}'")
             if "CT" in search_filters["Modality"]:
                 # check only axials images
-                filters_list.append("contains(lower(meta:['00080008']), 'axial')")
+                filters_list.append("contains(lower(meta:['00080008']::String), 'axial')")
 
         if "SeriesInstanceUID" in search_filters:
-            filters_list.append(f"meta:['0020000E'].Value[0] = '{search_filters['SeriesInstanceUID']}'")
+            filters_list.append(f"meta:['0020000E'].Value[0]::String = '{search_filters['SeriesInstanceUID']}'")
 
         filters_list = " and ".join(filters_list)
 
@@ -40,7 +40,7 @@ class DatabricksClient(DICOMwebClient):
             "warehouse_id": f"{self.warehouse_id}",
             "statement": f"""
             with ct as (
-                SELECT distinct(meta:['0020000D'], meta:['0020000E'], meta:['0008103E']) as result FROM {self.table} where {filters_list}
+                SELECT distinct(meta:['0020000D']::String, meta:['0020000E']::String, meta:['0008103E']::String) as result FROM {self.table} where {filters_list}
             )
             select result.`0020000D`, result.`0020000E`, result.`0008103E` from ct""",
             "wait_timeout": "30s",
@@ -77,9 +77,9 @@ class DatabricksClient(DICOMwebClient):
 
         data = {
             "warehouse_id": f"{self.warehouse_id}",
-            "statement": f"""SELECT local_path, meta:['00080018'].Value[0] as SOPInstanceUID FROM {self.table} where
-            meta:['0020000E'].Value[0] = '{series_instance_uid}' and
-            meta:['0020000D'].Value[0] = '{study_instance_uid}'
+            "statement": f"""SELECT local_path, meta:['00080018'].Value[0]::String as SOPInstanceUID FROM {self.table} where
+            meta:['0020000E'].Value[0]::String = '{series_instance_uid}' and
+            meta:['0020000D'].Value[0]::String = '{study_instance_uid}'
             """,
             "wait_timeout": "30s",
             "on_wait_timeout": "CANCEL",
@@ -109,17 +109,17 @@ class DatabricksClient(DICOMwebClient):
 
         filters_list = []
 
-        filters_list.append(f"meta:['0020000D'].Value[0] = '{study_instance_uid}'")
-        filters_list.append(f"meta:['0020000E'].Value[0] = '{series_instance_uid}'")
+        filters_list.append(f"meta:['0020000D'].Value[0]::String = '{study_instance_uid}'")
+        filters_list.append(f"meta:['0020000E'].Value[0]::String = '{series_instance_uid}'")
 
         filters_list_str = " and ".join(filters_list)
         # `00081115` Referenced Series Sequence
         data = {
             "warehouse_id": f"{self.warehouse_id}",
             "statement": f"""SELECT
-                meta:['00081115'] as `00081115`
+                meta:['00081115']::String as `00081115`
                 FROM {self.table}
-                where {filters_list_str} and meta:['00081115'] is not null""",
+                where {filters_list_str} and meta:['00081115']::String is not null""",
             "wait_timeout": "30s",
             "on_wait_timeout": "CANCEL",
         }

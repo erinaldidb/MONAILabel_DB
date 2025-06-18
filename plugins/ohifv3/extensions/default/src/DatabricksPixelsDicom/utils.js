@@ -89,40 +89,40 @@ async function qidoStudiesSearch(databricksClient, warehouseId, pixelsTable, ori
 
   let filters = ["1=1"];
   if ("patientName" in origParams) {
-    filters.push(`lower(meta:['00100010'].Value) like lower('%${origParams.patientName}%')`);
+    filters.push(`lower(meta:['00100010'].Value::String) like lower('%${origParams.patientName}%')`);
   }
   if ("patientId" in origParams && "pageNumber" in origParams) {
-    filters.push(`meta:['00100020'].Value[0] like '${origParams.patientId}%'`);
+    filters.push(`meta:['00100020'].Value[0]::String like '${origParams.patientId}%'`);
   }
   if ("accessionNumber" in origParams) {
-    filters.push(`meta:['00080050'].Value[0] like '${origParams.accessionNumber}%'`);
+    filters.push(`meta:['00080050'].Value[0]::String like '${origParams.accessionNumber}%'`);
   }
   if ("studyDescription" in origParams) {
-    filters.push(`lower(meta:['00081030'].Value) like lower('%${origParams.studyDescription}%')`);
+    filters.push(`lower(meta:['00081030'].Value::String) like lower('%${origParams.studyDescription}%')`);
   }
   if ("modalitiesInStudy" in origParams) {
-    filters.push(`(meta:['00080060'].Value[0] in ('${origParams.modalitiesInStudy.join("','")}') OR
-                  meta:['00080061'].Value[0] in ('${origParams.modalitiesInStudy.join("','")}'))`);
+    filters.push(`(meta:['00080060'].Value[0]::String in ('${origParams.modalitiesInStudy.join("','")}') OR
+                  meta:['00080061'].Value[0]::String in ('${origParams.modalitiesInStudy.join("','")}'))`);
   }
   if ("startDate" in origParams) {
-    filters.push(`'${origParams.startDate}' <= meta:['00080020'].Value[0]`);
+    filters.push(`'${origParams.startDate}' <= meta:['00080020'].Value[0]::String`);
   }
   if ("endDate" in origParams) {
-    filters.push(`'${origParams.endDate}' >= meta:['00080020'].Value[0]`);
+    filters.push(`'${origParams.endDate}' >= meta:['00080020'].Value[0]::String`);
   }
 
   let body = {
     "warehouse_id": warehouseId,
     "statement": `select
-        meta: ['0020000D'] as studyInstanceUid,
-        nullif(meta: ['00080020'].Value[0], '') as date,
-        nullif(meta: ['00080030'].Value[0], '') as time,
-        nullif(meta: ['00080050'].Value[0], '') as accession,
-        nullif(meta: ['00100020'].Value[0], '') as mrn,
-        first(meta: ['00100010'], true) as patientName,
-        first(meta: ['00081030'], true) as description,
-        array_join(collect_set(nullif(meta:['00080060'].Value[0], '')), '/') as modalities1,
-        array_join(collect_set(nullif(meta:['00080061'].Value[0], '')), '/') as modalities2,
+        meta: ['0020000D']::String as studyInstanceUid,
+        nullif(meta: ['00080020'].Value[0]::String, '') as date,
+        nullif(meta: ['00080030'].Value[0]::String, '') as time,
+        nullif(meta: ['00080050'].Value[0]::String, '') as accession,
+        nullif(meta: ['00100020'].Value[0]::String, '') as mrn,
+        first(meta: ['00100010']::String, true) as patientName,
+        first(meta: ['00081030']::String, true) as description,
+        array_join(collect_set(nullif(meta:['00080060'].Value[0]::String, '')), '/') as modalities1,
+        array_join(collect_set(nullif(meta:['00080061'].Value[0]::String, '')), '/') as modalities2,
         count(*) as instances
        FROM ${pixelsTable}
        WHERE ${filters.join(" AND ")}
@@ -143,13 +143,13 @@ async function qidoSeriesSearch(databricksClient, warehouseId, studyInstanceUid,
     "warehouse_id": warehouseId,
     "statement": `SELECT *, count(*) as numSeriesInstances from (
       SELECT
-        meta:['0020000D'] as studyInstanceUid,
-        meta:['0020000E'] as seriesInstanceUid,
-        meta:['00080060'] as modality,
-        meta:['00200011'] as seriesNumber,
-        meta:['0008103E'] as description
+        meta:['0020000D']::String as studyInstanceUid,
+        meta:['0020000E']::String as seriesInstanceUid,
+        meta:['00080060']::String as modality,
+        meta:['00200011']::String as seriesNumber,
+        meta:['0008103E']::String as description
         FROM ${pixelsTable}
-        WHERE meta:['0020000D'].Value[0] = '${studyInstanceUid}')
+        WHERE meta:['0020000D'].Value[0]::String = '${studyInstanceUid}')
       group by studyInstanceUid, seriesInstanceUid, modality, seriesNumber, seriesInstanceUid, description`,
     "wait_timeout": "30s",
     "on_wait_timeout": "CANCEL"
@@ -167,10 +167,10 @@ async function qidoSeriesMetadataSearch(databricksClient, warehouseId, studyInst
     "statement": `
       with qico(
         SELECT
-              meta:['0020000D'].Value[0] as StudyInstanceUID,
-              meta:['0020000E'].Value[0] as SeriesInstanceUID,
-              meta:['00080018'].Value[0] as SOPInstanceUID,
-              meta:['00080016'].Value[0] as SOPClassUID,
+              meta:['0020000D'].Value[0]::String as StudyInstanceUID,
+              meta:['0020000E'].Value[0]::String as SeriesInstanceUID,
+              meta:['00080018'].Value[0]::String as SOPInstanceUID,
+              meta:['00080016'].Value[0]::String as SOPClassUID,
               meta,
               relative_path
         FROM ${pixelsTable}
@@ -208,7 +208,7 @@ async function persistMetadata(databricksClient, warehouseId, pixelsTable, datas
    extension, file_type, path_tags, is_anon, meta, thumbnail)
   VALUES (
    'dbfs:/${dataset.path}',  to_timestamp(unix_timestamp('${dataset.datetime}', 'yyyyMMddHHmmss')), '${dataset.length}', 'dbfs:/${dataset.path}', '${dataset.path}', '/${dataset.path}',
-   'dcm', '', array(), 'true', '${dataset.meta}',
+   'dcm', '', array(), 'true', parse_json('${dataset.meta}'),
    struct( 'ohif_export' AS origin, -1 AS height, -1 AS width, -1 AS nChannels, -1 AS mode, CAST('' AS binary)))`,
     "wait_timeout": "30s",
     "on_wait_timeout": "CANCEL"
