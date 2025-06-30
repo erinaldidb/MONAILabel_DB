@@ -27,7 +27,7 @@ cd ${my_dir}
 rm -rf Viewers
 git clone https://github.com/OHIF/Viewers.git
 cd Viewers
-git checkout 9a4a40468fc61e8c4818ea57905239bdff47f634
+git checkout 1ad5acae9d75259374f968b1c2dd17a581bdd9a4
 
 #cp -r ../extensions/monai-label extensions/
 #cp -r ../modes/monai-label modes/monai-label
@@ -62,8 +62,8 @@ cp -r platform/app/dist/ ${install_dir}
 echo "Copied OHIF to ${install_dir}"
 
 cd ..
-rm -rf Viewers
-find .  -type d -name "node_modules" -exec rm -rf "{}" +
+#rm -rf Viewers
+#find .  -type d -name "node_modules" -exec rm -rf "{}" +
 
 echo "Patching index.html"
 cd ${install_dir}
