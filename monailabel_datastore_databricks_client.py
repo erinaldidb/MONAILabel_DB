@@ -40,7 +40,7 @@ class DatabricksClient(DICOMwebClient):
             "warehouse_id": f"{self.warehouse_id}",
             "statement": f"""
             with ct as (
-                SELECT distinct(meta:['0020000D']::String, meta:['0020000E']::String, meta:['0008103E']::String) as result FROM {self.table} where {filters_list}
+                SELECT distinct(meta:['0020000D']::String as `0020000D`, meta:['0020000E']::String as `0020000E`, meta:['0008103E']::String as `0008103E`) as result FROM {self.table} where {filters_list}
             )
             select result.`0020000D`, result.`0020000E`, result.`0008103E` from ct""",
             "wait_timeout": "30s",
