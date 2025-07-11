@@ -205,11 +205,11 @@ async function persistMetadata(databricksClient, warehouseId, pixelsTable, datas
     "warehouse_id": warehouseId,
     "statement": `INSERT INTO ${pixelsTable}
   (path, modificationTime, length, original_path, relative_path, local_path,
-   extension, file_type, path_tags, is_anon, meta, thumbnail)
+   extension, file_type, path_tags, is_anon, meta)
   VALUES (
    'dbfs:/${dataset.path}',  to_timestamp(unix_timestamp('${dataset.datetime}', 'yyyyMMddHHmmss')), '${dataset.length}', 'dbfs:/${dataset.path}', '${dataset.path}', '/${dataset.path}',
-   'dcm', '', array(), 'true', parse_json('${dataset.meta}'),
-   struct( 'ohif_export' AS origin, -1 AS height, -1 AS width, -1 AS nChannels, -1 AS mode, CAST('' AS binary)))`,
+   'dcm', '', array(), 'true', parse_json('${dataset.meta}')
+  )`,
     "wait_timeout": "30s",
     "on_wait_timeout": "CANCEL"
   }
