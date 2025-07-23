@@ -208,8 +208,7 @@ async function persistMetadata(databricksClient, warehouseId, pixelsTable, datas
    extension, file_type, path_tags, is_anon, meta)
   VALUES (
    'dbfs:/${dataset.path}',  to_timestamp(unix_timestamp('${dataset.datetime}', 'yyyyMMddHHmmss')), '${dataset.length}', 'dbfs:/${dataset.path}', '${dataset.path}', '/${dataset.path}',
-   'dcm', '', array(), 'true', parse_json('${dataset.meta}')
-  )`,
+   'dcm', '', array(), 'true', parse_json('${dataset.meta}'))`,
     "wait_timeout": "30s",
     "on_wait_timeout": "CANCEL"
   }

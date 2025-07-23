@@ -15,6 +15,7 @@ import {
   processSeriesMetadataResults,
   persistMetadata
 } from './utils.js';
+import StaticWadoClient from './StaticWadoClient';
 
 const metadataProvider = OHIF.classes.MetadataProvider;
 
@@ -61,7 +62,8 @@ function createDatabricksPixelsDicom(dcmConfig, servicesManager) {
 
   let dicomConfig,
     databricksClient,
-    warehouseId;
+    warehouseId,
+    wadoDicomWebClient;
 
   console.info("createDatabricksPixelsDicom")
 
@@ -96,6 +98,9 @@ function createDatabricksPixelsDicom(dcmConfig, servicesManager) {
       }
 
       warehouseId = dicomConfig.httpPath.split("/")[4]
+
+      wadoDicomWebClient = new StaticWadoClient(dicomConfig, servicesManager)
+      wadoDicomWebClient.baseURL = "wado"
 
     },
     query: {
@@ -139,6 +144,12 @@ function createDatabricksPixelsDicom(dcmConfig, servicesManager) {
           );
         }
       },
+
+      getWadoDicomWebClient: () => {
+        console.log("getWadoDicomWebClient", wadoDicomWebClient)
+        return wadoDicomWebClient
+      },
+
       bulkDataURI: async ({ StudyInstanceUID, BulkDataURI }) => {
         console.warn(' Retrieve bulkDataURI not implemented');
       },
