@@ -60,7 +60,7 @@ yarn run cli list
 
 #patching dicom-microscopy
 sed -i.bak 's/extensionManager.activeDataSource/extensionManager.activeDataSourceName/g' ./extensions/dicom-microscopy/src/utils/dicomWebClient.ts && rm ./extensions/dicom-microscopy/src/utils/dicomWebClient.ts.bak
-sed -i.bak "s/await window.browserImportFunction(/await window.browserImportFunction(window.config.routerBasename+/g" ./platform/app/.webpack/writePluginImportsFile.js && rm ./platform/app/.webpack/writePluginImportsFile.js.bak
+sed -i.bak 's/\/dicom-microscopy-viewer\/dicomMicroscopyViewer.min.js/dicom-microscopy-viewer\/dicomMicroscopyViewer.min.js/g' ./platform/app/pluginConfig.json && rm ./platform/app/pluginConfig.json.bak
 
 APP_CONFIG=config/databricks.js PUBLIC_URL=./ QUICK_BUILD=true yarn run build
 
