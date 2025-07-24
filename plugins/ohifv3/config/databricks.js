@@ -22,6 +22,7 @@ window.config = {
         //serverHostname: "{ROUTER_BASENAME}/sqlwarehouse",
         serverHostname: "{HOST_NAME}",
         pixelsTable: "{PIXELS_TABLE}",
+        staticWado: true
       },
     },
     {

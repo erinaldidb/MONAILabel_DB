@@ -54,6 +54,10 @@ cp ${curr_dir}/../plugins/ohifv3/extensions/default/src/DatabricksPixelsDicom/fi
 cp ${curr_dir}/../plugins/ohifv3/extensions/default/src/getDataSourcesModule.js ./extensions/default/src/getDataSourcesModule.js
 cp ${curr_dir}/../plugins/ohifv3/extensions/cornerstone-dicom-seg/src/commandsModule.ts ./extensions/cornerstone-dicom-seg/src/commandsModule.ts
 
+#patching dicom-microscopy
+sed -i.bak 's/extensionManager.activeDataSource/extensionManager.activeDataSourceName/g' ${curr_dir}/../plugins/ohifv3/extensions/dicom-microscopy/src/utils/dicomWebClient.ts && rm ${curr_dir}/../plugins/ohifv3/extensions/dicom-microscopy/src/utils/dicomWebClient.ts.bak
+sed -i.bak 's/"/dicom-microscopy-viewer/dicomMicroscopyViewer.min.js"/window.routerBasename+"/dicom-microscopy-viewer/dicomMicroscopyViewer.min.js"/g' ${curr_dir}/../plugins/ohifv3/platform/app/src/pluginImports.js && rm ${curr_dir}/../plugins/ohifv3/platform/app/src/pluginImports.js.bak
+
 yarn config set workspaces-experimental true
 yarn install
 yarn run cli list
