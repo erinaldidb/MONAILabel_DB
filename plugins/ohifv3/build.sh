@@ -48,6 +48,9 @@ echo "Installing Databricks Integration"
 mkdir ./extensions/default/src/DatabricksPixelsDicom/
 cp ${curr_dir}/../plugins/ohifv3/extensions/default/src/DatabricksPixelsDicom/index.js ./extensions/default/src/DatabricksPixelsDicom/index.js
 cp ${curr_dir}/../plugins/ohifv3/extensions/default/src/DatabricksPixelsDicom/utils.js ./extensions/default/src/DatabricksPixelsDicom/utils.js
+cp ${curr_dir}/../plugins/ohifv3/extensions/default/src/DatabricksPixelsDicom/fixMultipart.ts ./extensions/default/src/DatabricksPixelsDicom/fixMultipart.ts
+cp ${curr_dir}/../plugins/ohifv3/extensions/default/src/DatabricksPixelsDicom/StaticWadoClient.ts ./extensions/default/src/DatabricksPixelsDicom/StaticWadoClient.ts
+cp ${curr_dir}/../plugins/ohifv3/extensions/default/src/DatabricksPixelsDicom/findIndexOfString.ts ./extensions/default/src/DatabricksPixelsDicom/findIndexOfString.ts
 cp ${curr_dir}/../plugins/ohifv3/extensions/default/src/getDataSourcesModule.js ./extensions/default/src/getDataSourcesModule.js
 cp ${curr_dir}/../plugins/ohifv3/extensions/cornerstone-dicom-seg/src/commandsModule.ts ./extensions/cornerstone-dicom-seg/src/commandsModule.ts
 
