@@ -60,7 +60,7 @@ yarn run cli list
 
 #patching dicom-microscopy
 sed -i.bak 's/extensionManager.activeDataSource/extensionManager.activeDataSourceName/g' ./extensions/dicom-microscopy/src/utils/dicomWebClient.ts && rm ./extensions/dicom-microscopy/src/utils/dicomWebClient.ts.bak
-sed -i.bak 's/\/dicom-microscopy-viewer\/dicomMicroscopyViewer.min.js/dicom-microscopy-viewer\/dicomMicroscopyViewer.min.js/g' ./platform/app/pluginConfig.json && rm ./platform/app/pluginConfig.json.bak
+sed -i.bak 's/\/dicom-microscopy-viewer\/dicomMicroscopyViewer.min.js/.\/dicom-microscopy-viewer\/dicomMicroscopyViewer.min.js/g' ./platform/app/pluginConfig.json && rm ./platform/app/pluginConfig.json.bak
 
 APP_CONFIG=config/databricks.js PUBLIC_URL=./ QUICK_BUILD=true yarn run build
 
@@ -69,8 +69,13 @@ cp -r platform/app/dist/ ${install_dir}
 echo "Copied OHIF to ${install_dir}"
 
 cd ..
-rm -rf Viewers
-find .  -type d -name "node_modules" -exec rm -rf "{}" +
+
+if [ "$local" = "TRUE" ]; then
+    echo "Building OHIF locally"
+else
+    rm -rf Viewers
+    find .  -type d -name "node_modules" -exec rm -rf "{}" +
+fi
 
 echo "Patching index.html"
 cd ${install_dir}
