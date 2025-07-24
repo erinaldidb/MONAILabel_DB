@@ -53,6 +53,7 @@ cp ${curr_dir}/../plugins/ohifv3/extensions/default/src/DatabricksPixelsDicom/St
 cp ${curr_dir}/../plugins/ohifv3/extensions/default/src/DatabricksPixelsDicom/findIndexOfString.ts ./extensions/default/src/DatabricksPixelsDicom/findIndexOfString.ts
 cp ${curr_dir}/../plugins/ohifv3/extensions/default/src/getDataSourcesModule.js ./extensions/default/src/getDataSourcesModule.js
 cp ${curr_dir}/../plugins/ohifv3/extensions/cornerstone-dicom-seg/src/commandsModule.ts ./extensions/cornerstone-dicom-seg/src/commandsModule.ts
+cp ${curr_dir}/../plugins/ohifv3/extensions/dicom-microscopy/src/utils/dicomWebClient.ts ./extensions/dicom-microscopy/src/utils/dicomWebClient.ts
 
 yarn config set workspaces-experimental true
 yarn install

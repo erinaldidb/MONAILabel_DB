@@ -144,6 +144,7 @@ jobs:
           cp ../plugins/ohifv3/modes/monai-label/src/initToolGroups.js plugins/ohifv3/modes/monai-label/src/initToolGroups.js
           cp ../plugins/ohifv3/extensions/monai-label/src/components/OptionsInputDialog.tsx plugins/ohifv3/extensions/monai-label/src/components/OptionsInputDialog.tsx
           cp ../plugins/ohifv3/extensions/monai-label/src/components/SettingsTable.tsx plugins/ohifv3/extensions/monai-label/src/components/SettingsTable.tsx
+          cp ../plugins/ohifv3/extensions/dicom-microscopy/src/utils/dicomWebClient.ts plugins/ohifv3/extensions/dicom-microscopy/src/utils/dicomWebClient.ts
 
           git apply --reject --whitespace=fix ../monailabel_config.py.patch
           git apply --reject --whitespace=fix ../monailabel_datastore_dicom.py.patch
