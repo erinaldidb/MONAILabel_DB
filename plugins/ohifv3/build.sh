@@ -54,13 +54,13 @@ cp ${curr_dir}/../plugins/ohifv3/extensions/default/src/DatabricksPixelsDicom/fi
 cp ${curr_dir}/../plugins/ohifv3/extensions/default/src/getDataSourcesModule.js ./extensions/default/src/getDataSourcesModule.js
 cp ${curr_dir}/../plugins/ohifv3/extensions/cornerstone-dicom-seg/src/commandsModule.ts ./extensions/cornerstone-dicom-seg/src/commandsModule.ts
 
-#patching dicom-microscopy
-sed -i.bak 's/extensionManager.activeDataSource/extensionManager.activeDataSourceName/g' ./extensions/dicom-microscopy/src/utils/dicomWebClient.ts && rm ./extensions/dicom-microscopy/src/utils/dicomWebClient.ts.bak
-sed -i.bak "s/'\/dicom-microscopy-viewer\/dicomMicroscopyViewer.min.js'/window.routerBasename+'\/dicom-microscopy-viewer\/dicomMicroscopyViewer.min.js'/g" ./platform/app/src/pluginImports.js && rm ./platform/app/src/pluginImports.js.bak
-
 yarn config set workspaces-experimental true
 yarn install
 yarn run cli list
+
+#patching dicom-microscopy
+sed -i.bak 's/extensionManager.activeDataSource/extensionManager.activeDataSourceName/g' ./extensions/dicom-microscopy/src/utils/dicomWebClient.ts && rm ./extensions/dicom-microscopy/src/utils/dicomWebClient.ts.bak
+sed -i.bak "s/await window.browserImportFunction(/await window.browserImportFunction(window.routerBasename+/g" ./platform/app/.webpack/writePluginImportsFile.js && rm ./platform/app/.webpack/writePluginImportsFile.js.bak
 
 APP_CONFIG=config/databricks.js PUBLIC_URL=./ QUICK_BUILD=true yarn run build
 
@@ -69,8 +69,8 @@ cp -r platform/app/dist/ ${install_dir}
 echo "Copied OHIF to ${install_dir}"
 
 cd ..
-rm -rf Viewers
-find .  -type d -name "node_modules" -exec rm -rf "{}" +
+#rm -rf Viewers
+#find .  -type d -name "node_modules" -exec rm -rf "{}" +
 
 echo "Patching index.html"
 cd ${install_dir}
