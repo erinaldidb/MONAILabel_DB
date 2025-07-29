@@ -103,7 +103,7 @@ export default class StaticWadoClient extends api.DICOMwebClient {
       console.log("- Instance Metadata:", storedInstance);
     }
 
-    return this._httpGetMultipartApplicationOctetStream(storedInstance.wadoUri + "?frames=" + options.frameNumbers.toString(), false, false, false, false, false);
+    return this._httpGetMultipartApplicationOctetStream(storedInstance.wadoUri.replace("/files/", "/files_wsi/") + "?frames=" + options.frameNumbers.toString(), false, false, false, false, false);
               
     if (this.staticWado) {
       return super.retrieveInstanceFrames({
