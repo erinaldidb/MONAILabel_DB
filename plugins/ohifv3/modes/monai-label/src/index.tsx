@@ -143,10 +143,10 @@ function modeFactory({ modeConfiguration }) {
       return {
         valid:
           modalitiesArray.length === 1
-            ? !['CT'].includes(modalitiesArray[0])
-            : true,
+            ? ['CT'].includes(modalitiesArray[0])
+            : false,
         description:
-          'The mode does not support studies that ONLY include the following modalities: CT',
+          'The mode support studies that include the following modalities: CT',
       };
     },
     /**

@@ -54,6 +54,7 @@ cp ${curr_dir}/../plugins/ohifv3/extensions/default/src/DatabricksPixelsDicom/fi
 cp ${curr_dir}/../plugins/ohifv3/extensions/default/src/getDataSourcesModule.js ./extensions/default/src/getDataSourcesModule.js
 cp ${curr_dir}/../plugins/ohifv3/extensions/cornerstone-dicom-seg/src/commandsModule.ts ./extensions/cornerstone-dicom-seg/src/commandsModule.ts
 cp ${curr_dir}/../plugins/ohifv3/extensions/dicom-microscopy/src/utils/dicomWebClient.ts ./extensions/dicom-microscopy/src/utils/dicomWebClient.ts
+cp ${curr_dir}/../plugins/ohifv3/extensions/default/src/DatabricksPixelsDicom/multiframeImageLoader.js ./extensions/default/src/DatabricksPixelsDicom/multiframeImageLoader.js
 
 yarn config set workspaces-experimental true
 yarn install

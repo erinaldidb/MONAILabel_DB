@@ -17,6 +17,9 @@ import {
 } from './utils.js';
 import StaticWadoClient from './StaticWadoClient';
 
+import * as cornerstone from '@cornerstonejs/core';
+import MultiframeImageLoaderService from './multiframeImageLoader.js';
+
 const metadataProvider = OHIF.classes.MetadataProvider;
 
 const { DicomMetaDictionary, DicomDict } = dcmjs.data;
@@ -69,6 +72,13 @@ function createDatabricksPixelsDicom(dcmConfig, servicesManager) {
 
   const implementation = {
     initialize: async ({ params, query }) => {
+
+      cornerstone.registerImageLoader('multiframe', (imageId, options) => {
+        const loader = new MultiframeImageLoaderService();
+        return {
+          promise: loader.loadImage(imageId)
+        };
+      });
 
       console.info("createDatabricksPixelsDicom - Initialize")
 
@@ -177,7 +187,11 @@ function createDatabricksPixelsDicom(dcmConfig, servicesManager) {
               
               naturalizedInstancesMetadata.InstanceNumber = instance.GeneratedInstanceNumber
               //delete naturalizedInstancesMetadata.InstanceNumber
-              naturalizedInstancesMetadata.url = "dicomweb:" + databricksClient.defaults.baseURL + "fs/files/" + instance.relative_path
+              if (naturalizedInstancesMetadata.NumberOfFrames > 1) {
+                naturalizedInstancesMetadata.url = "multiframe:" + databricksClient.defaults.baseURL + "fs/files/" + instance.relative_path
+              } else {
+                naturalizedInstancesMetadata.url = "dicomweb:" + databricksClient.defaults.baseURL + "fs/files/" + instance.relative_path
+              }
 
               const {
                 url: imageId,
