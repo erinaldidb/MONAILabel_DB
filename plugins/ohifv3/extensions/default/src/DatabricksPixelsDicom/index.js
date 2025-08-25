@@ -200,6 +200,8 @@ function createDatabricksPixelsDicom(dcmConfig, servicesManager) {
                 SOPInstanceUID,
               } = naturalizedInstancesMetadata;
 
+              console.log("imageId", imageId)
+
               naturalizedInstancesMetadata.imageId = imageId;
               naturalizedInstancesMetadata.wadoUri = databricksClient.defaults.baseURL + "fs/files/" + instance.relative_path
 
@@ -224,14 +226,15 @@ function createDatabricksPixelsDicom(dcmConfig, servicesManager) {
                 instancesPerSeries[naturalizedInstancesMetadata.SeriesInstanceUID] = [];
               }
 
-              // Add imageId specific mapping to this data as the URL isn't necessarily WADO-URI.
-              metadataProvider.addImageIdToUIDs(imageId, {
-                StudyInstanceUID,
-                SeriesInstanceUID,
-                SOPInstanceUID,
-                frameIndex: 1,
-              });
-
+              for (let i = 1; i <= naturalizedInstancesMetadata.NumberOfFrames; i++) {
+                metadataProvider.addImageIdToUIDs(imageId, {
+                  StudyInstanceUID,
+                  SeriesInstanceUID,
+                  SOPInstanceUID,
+                  frameIndex: i,
+                });
+              }
+              
               instancesPerSeries[naturalizedInstancesMetadata.SeriesInstanceUID].push(naturalizedInstancesMetadata);
 
             });
