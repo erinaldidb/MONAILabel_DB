@@ -135,40 +135,11 @@ function determinePixelDataInfo(metadata, imageId) {
     sharedCacheKey: sharedCacheKey,
     TypedArrayConstructor: TypedArrayConstructor,
     bytesPerPixel: bytesPerPixel,
-    pixelsPerFrame: pixelsPerFrame
+    pixelsPerFrame: pixelsPerFrame,
+    imageQualityStatus: 8
   };
 
   return pixelDataInfo;
-}
-
-function createCornerstoneImageFromInfo(pixelDataInfo, pixelData) {
-  // Crea oggetto immagine utilizzando le info già calcolate
-  return {
-    imageId: pixelDataInfo.imageId,
-    minPixelValue: pixelDataInfo.minPixelValue,
-    maxPixelValue: pixelDataInfo.maxPixelValue,
-    slope: pixelDataInfo.slope,
-    intercept: pixelDataInfo.intercept,
-    windowCenter: pixelDataInfo.windowCenter,
-    windowWidth: pixelDataInfo.windowWidth,
-    render: pixelDataInfo.color ? cornerstone.renderColorImage : cornerstone.renderGrayscaleImage,
-    getPixelData: () => pixelData,
-    rows: pixelDataInfo.rows,
-    columns: pixelDataInfo.columns,
-    height: pixelDataInfo.height,
-    width: pixelDataInfo.width,
-    color: pixelDataInfo.color,
-    columnPixelSpacing: pixelDataInfo.columnPixelSpacing,
-    rowPixelSpacing: pixelDataInfo.rowPixelSpacing,
-    sizeInBytes: pixelDataInfo.sizeInBytes,
-    invert: pixelDataInfo.invert,
-    
-    // Aggiungi info aggiuntive per compatibilità
-    preScale: pixelDataInfo.preScale,
-    imageFrame: pixelDataInfo.imageFrame,
-    loadTimeInMS: pixelDataInfo.loadTimeInMS,
-    totalTimeInMS: pixelDataInfo.totalTimeInMS
-  };
 }
 
 function convertPixelDataToTypedArray(rawPixelData, pixelDataInfo) {
