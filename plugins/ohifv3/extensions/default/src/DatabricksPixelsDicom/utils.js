@@ -134,6 +134,10 @@ async function qidoStudiesSearch(databricksClient, warehouseId, pixelsTable, ori
 
   const result = await databricksClient.post(SQL_STATEMENT_API, body)
 
+  if (result.data.status.state === "FAILED") {
+    throw new Error(result.data.status.error.message)
+  }
+
   return result.data.result.data_array;
 }
 
@@ -156,6 +160,10 @@ async function qidoSeriesSearch(databricksClient, warehouseId, studyInstanceUid,
   }
 
   const result = await databricksClient.post(SQL_STATEMENT_API, body)
+
+  if (result.data.status.state === "FAILED") {
+    throw new Error(result.data.status.error.message)
+  }
 
   return result.data.result.data_array;
 }
@@ -189,6 +197,11 @@ async function qidoSeriesMetadataSearch(databricksClient, warehouseId, studyInst
   }
 
   var result = await databricksClient.post(SQL_STATEMENT_API, body);
+
+  if (result.data.status.state === "FAILED") {
+    throw new Error(result.data.status.error.message)
+  }
+
   to_return = result.data.result.data_array
 
   while (result.data.result?.next_chunk_internal_link) {
@@ -215,6 +228,10 @@ async function persistMetadata(databricksClient, warehouseId, pixelsTable, datas
 
   //console.log(body)
   const result = await databricksClient.post(SQL_STATEMENT_API, body)
+
+  if (result.data.status.state === "FAILED") {
+    throw new Error(result.data.status.error.message)
+  }
 
   return result;
 }
