@@ -227,12 +227,12 @@ function createDatabricksPixelsDicom(dcmConfig, servicesManager) {
                 instancesPerSeries[naturalizedInstancesMetadata.SeriesInstanceUID] = [];
               }
 
-              for (let i = 0; i <= naturalizedInstancesMetadata.NumberOfFrames; i++) {
+              for (let i = 1; i <= naturalizedInstancesMetadata.NumberOfFrames; i++) {
                 metadataProvider.addImageIdToUIDs(imageId, {
                   StudyInstanceUID,
                   SeriesInstanceUID,
                   SOPInstanceUID,
-                  frameIndex: i+1,
+                  frameIndex: i,
                 });
               }
               
