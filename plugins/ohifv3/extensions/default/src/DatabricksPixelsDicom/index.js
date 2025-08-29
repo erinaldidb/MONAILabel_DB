@@ -191,6 +191,7 @@ function createDatabricksPixelsDicom(dcmConfig, servicesManager) {
                 naturalizedInstancesMetadata.url = "multiframe:" + databricksClient.defaults.baseURL + "fs/files/" + instance.relative_path
               } else {
                 naturalizedInstancesMetadata.url = "dicomweb:" + databricksClient.defaults.baseURL + "fs/files/" + instance.relative_path
+                naturalizedInstancesMetadata.NumberOfFrames = 1
               }
 
               const {
@@ -226,12 +227,12 @@ function createDatabricksPixelsDicom(dcmConfig, servicesManager) {
                 instancesPerSeries[naturalizedInstancesMetadata.SeriesInstanceUID] = [];
               }
 
-              for (let i = 1; i <= naturalizedInstancesMetadata.NumberOfFrames; i++) {
+              for (let i = 0; i <= naturalizedInstancesMetadata.NumberOfFrames; i++) {
                 metadataProvider.addImageIdToUIDs(imageId, {
                   StudyInstanceUID,
                   SeriesInstanceUID,
                   SOPInstanceUID,
-                  frameIndex: i,
+                  frameIndex: i+1,
                 });
               }
               
