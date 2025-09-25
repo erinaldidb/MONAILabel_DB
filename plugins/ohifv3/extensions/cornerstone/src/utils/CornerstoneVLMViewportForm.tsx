@@ -4,6 +4,7 @@ import { getEnabledElement, StackViewport, BaseVolumeViewport } from '@cornersto
 import { ToolGroupManager, segmentation, Enums } from '@cornerstonejs/tools';
 import { getEnabledElement as OHIFgetEnabledElement } from '../state';
 import { useSystem } from '@ohif/core/src';
+import axios from "axios";
 
 const VLM_VIEWPORT_ID = 'cornerstone-vlm-viewport-form';
 
@@ -17,12 +18,20 @@ const CornerstoneVLMViewportForm = ({
   activeViewportId: activeViewportIdProp,
 }: VLMViewportFormProps) => {
   const { servicesManager } = useSystem();
-  const { uiNotificationService, cornerstoneViewportService } = servicesManager.services;
+  const { uiNotificationService, cornerstoneViewportService, displaySetService, viewportGridService } = servicesManager.services;
+  
+  // Get configuration from window.config
+  const getConfig = () => {
+    return (window as any).config || {};
+  };
   const [prompt, setPrompt] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<string | null>(null);
+  const [imageMetadata, setImageMetadata] = useState<any>(null);
+  const [showExamplePrompts, setShowExamplePrompts] = useState(true);
+  const [showPromptDropdown, setShowPromptDropdown] = useState(false);
 
   const refViewportEnabledElementOHIF = OHIFgetEnabledElement(activeViewportIdProp);
   const activeViewportElement = refViewportEnabledElementOHIF?.element;
@@ -46,7 +55,7 @@ const CornerstoneVLMViewportForm = ({
         allowTaint: true,
       });
       
-      return canvas.toDataURL('image/png', 1.0);
+      return canvas.toDataURL('image/jpeg', .85);
     } catch (error) {
       console.error('Error capturing viewport:', error);
       return null;
@@ -55,17 +64,95 @@ const CornerstoneVLMViewportForm = ({
     }
   };
 
+  // Example prompts for different user types
+  const examplePrompts = {
+    radiologist: [
+      'Identify any abnormalities or lesions in this medical image',
+      'Describe the anatomical structures visible in this scan',
+      'Assess the image quality and diagnostic value',
+      'Is there a non-biological foreign object present in this image? Do not identify the object, just confirm its presence',
+      'Provide differential diagnosis based on the imaging findings'
+    ],
+    medicalDirector: [
+      'Analyze the clinical significance of these imaging findings',
+      'Assess the urgency level and recommend next steps',
+      'Evaluate the technical quality and diagnostic confidence',
+      'Provide guidance on patient management based on these images',
+      'Review compliance with imaging protocols and standards'
+    ],
+    general: [
+      'What do you see in this medical image?',
+      'Explain the key findings in simple terms',
+      'What should I look for in this type of scan?',
+      'Scan this image for any visible Protected Health Information (PHI) and create a bounding box around it',
+      'Help me understand what this image shows'
+    ]
+  };
+
   // Auto-capture image when component mounts
   useEffect(() => {
     const autoCapture = async () => {
       const imageDataUrl = await captureViewportImage();
       if (imageDataUrl) {
         setCapturedImage(imageDataUrl);
+        // Extract metadata from the viewport
+        extractImageMetadata();
       }
     };
     
     autoCapture();
   }, []);
+
+  const extractImageMetadata = () => {
+    try {
+      // Get the viewport state to find the display set instance UID
+      const { viewports } = viewportGridService.getState();
+      const viewportInfo = viewports.get(activeViewportIdProp);
+      
+      if (!viewportInfo) {
+        console.warn('No viewport info found for:', activeViewportIdProp);
+        return;
+      }
+
+      const displaySetInstanceUID = viewportInfo.displaySetInstanceUIDs?.[0];
+      if (!displaySetInstanceUID) {
+        console.warn('No display set instance UID found for viewport:', activeViewportIdProp);
+        return;
+      }
+
+      // Get the current display sets from the display set service
+      const displaySets = displaySetService.getActiveDisplaySets();
+      const activeDisplaySet = displaySets.find(ds => 
+        ds.displaySetInstanceUID === displaySetInstanceUID
+      );
+      
+      if (activeDisplaySet) {
+        // Get metadata from the current instance
+        const metadata = activeDisplaySet.instance || activeDisplaySet;
+        
+        const dicomMetadata = {
+          imageId: metadata.imageId,
+          patientName: metadata.PatientName,
+          patientId: metadata.PatientID,
+          studyDate: metadata.StudyDate,
+          studyTime: metadata.StudyTime,
+          //studyDescription: metadata.StudyDescription,
+          seriesDescription: metadata.SeriesDescription,
+          modality: metadata.Modality,
+          instanceNumber: metadata.InstanceNumber,
+          seriesNumber: metadata.SeriesNumber,
+          studyInstanceUID: metadata.StudyInstanceUID,
+          seriesInstanceUID: metadata.SeriesInstanceUID,
+          sopInstanceUID: metadata.SOPInstanceUID,
+          sopClassUID: metadata.SOPClassUID,
+          timestamp: new Date().toISOString(),
+        };
+        setImageMetadata(dicomMetadata);
+      }
+    } catch (error) {
+      console.error('Error extracting DICOM metadata:', error);
+    }
+  };
 
   const handleAnalyze = async () => {
     if (!prompt.trim()) {
@@ -78,6 +165,7 @@ const CornerstoneVLMViewportForm = ({
     }
 
     setIsAnalyzing(true);
+    setShowExamplePrompts(false);
     
     try {
       // Capture the current viewport image
@@ -89,24 +177,44 @@ const CornerstoneVLMViewportForm = ({
 
       setCapturedImage(imageDataUrl);
       
-      // TODO: Implement VLM analysis logic here
-      // This would typically involve:
-      // 1. Sending image + prompt to VLM service
-      // 2. Processing and displaying results
+      // Extract base64 data from data URL
+      const base64Data = imageDataUrl.split(',')[1];
       
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
+      // Prepare API payload for Llama 4 Maverick
+      const apiPayload = {
+        model: 'databricks-llama-4-maverick',
+        prompt: prompt,
+        image: base64Data,
+        metadata: {
+          ...imageMetadata,
+          imageFormat: 'jpeg',
+          timestamp: new Date().toISOString(),
+          userType: 'medical_professional', // Could be determined from user context
+        },
+        max_tokens: 1000,
+        temperature: 0.7,
+      };
       
-      // Simulate VLM response
-      const mockResult = `Based on the analysis of the medical image with the prompt "${prompt}", here are the findings:
-
-• The image appears to show anatomical structures consistent with the requested analysis
-• Key features have been identified and analyzed according to the specified criteria
-• The analysis suggests normal anatomical presentation within expected parameters
-• No significant abnormalities were detected in the current view
-
-This is a simulated response. In a real implementation, this would contain the actual VLM analysis results.`;
+        // Get configuration and build API URL
+        const config = getConfig();
+        const dataSource = config.dataSources?.find((ds: any) => ds.sourceName === 'databricksPixelsDicom');
+        const serverHostname = dataSource?.configuration?.serverHostname || 'http://localhost:8010';
+        const apiUrl = `${serverHostname.replace("/sqlwarehouse", "")}/vlm/analyze`;
+        
+        // Make API call to VLM service
+        const response = await axios.post(apiUrl, apiPayload, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
       
-      setAnalysisResult(mockResult);
+      if (response.status !== 200) {
+        throw new Error(`API request failed: ${response.status}`);
+      }
+      
+      const result = response.data;
+      console.log(result);
+      setAnalysisResult(result.analysis || result || 'Analysis completed successfully.');
       
       uiNotificationService.show({
         title: 'VLM Analyzer',
@@ -114,14 +222,34 @@ This is a simulated response. In a real implementation, this would contain the a
         type: 'success',
       });
     } catch (error) {
+      console.error('VLM Analysis Error:', error);
+      
+      // Fallback to mock response for development
+      const mockResult = `Based on the analysis of the medical image with the prompt "${prompt}", here are the findings:
+
+• The image appears to show anatomical structures consistent with the requested analysis
+• Key features have been identified and analyzed according to the specified criteria
+• The analysis suggests normal anatomical presentation within expected parameters
+• No significant abnormalities were detected in the current view
+
+Note: This is a simulated response. API endpoint not available or configured.`;
+      
+      setAnalysisResult(mockResult);
+      
       uiNotificationService.show({
         title: 'VLM Analyzer',
-        message: 'Analysis failed. Please try again.',
-        type: 'error',
+        message: 'Using simulated response (API not configured)',
+        type: 'warning',
       });
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const handleExamplePrompt = (promptText: string) => {
+    setPrompt(promptText);
+    setShowExamplePrompts(false);
+    setShowPromptDropdown(false);
   };
 
   return (
@@ -160,6 +288,65 @@ This is a simulated response. In a real implementation, this would contain the a
         <label htmlFor="vlm-prompt" className="block text-sm font-medium mb-2 text-white">
           Analysis Prompt
         </label>
+        
+        {/* Example Prompt Dropdown */}
+        {showExamplePrompts && (
+          <div className="mb-3">
+            <div className="relative">
+              <button
+                onClick={() => setShowPromptDropdown(!showPromptDropdown)}
+                className="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 flex items-center justify-between"
+                disabled={isAnalyzing || isCapturing}
+              >
+                <span>📝 Quick Prompts</span>
+                <span className="text-xs">{showPromptDropdown ? '▲' : '▼'}</span>
+              </button>
+              
+              {showPromptDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-10 max-h-64 overflow-y-auto">
+                  <div className="p-2">
+                    <div className="text-xs font-semibold text-gray-600 mb-2">For Radiologists:</div>
+                    {examplePrompts.radiologist.map((examplePrompt, index) => (
+                      <button
+                        key={`rad-${index}`}
+                        onClick={() => handleExamplePrompt(examplePrompt)}
+                        className="w-full text-left px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded mb-1"
+                        disabled={isAnalyzing || isCapturing}
+                      >
+                        {examplePrompt}
+                      </button>
+                    ))}
+                    
+                    <div className="text-xs font-semibold text-gray-600 mb-2 mt-3">For Medical Directors:</div>
+                    {examplePrompts.medicalDirector.map((examplePrompt, index) => (
+                      <button
+                        key={`md-${index}`}
+                        onClick={() => handleExamplePrompt(examplePrompt)}
+                        className="w-full text-left px-2 py-1 text-xs text-green-600 hover:bg-green-50 rounded mb-1"
+                        disabled={isAnalyzing || isCapturing}
+                      >
+                        {examplePrompt}
+                      </button>
+                    ))}
+                    
+                    <div className="text-xs font-semibold text-gray-600 mb-2 mt-3">General:</div>
+                    {examplePrompts.general.map((examplePrompt, index) => (
+                      <button
+                        key={`gen-${index}`}
+                        onClick={() => handleExamplePrompt(examplePrompt)}
+                        className="w-full text-left px-2 py-1 text-xs text-gray-600 hover:bg-gray-50 rounded mb-1"
+                        disabled={isAnalyzing || isCapturing}
+                      >
+                        {examplePrompt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
         <textarea
           id="vlm-prompt"
           value={prompt}
