@@ -1,0 +1,12 @@
+diff --git a/modes/longitudinal/src/index.ts b/modes/longitudinal/src/index.ts
+index b24e1f250..d141b5ddd 100644
+--- a/modes/longitudinal/src/index.ts
++++ b/modes/longitudinal/src/index.ts
+@@ -98,6 +98,7 @@ function modeFactory({ modeConfiguration }) {
+         'TrackballRotate',
+         'WindowLevel',
+         'Capture',
++        'VLMAnalyzer',
+         'Layout',
+         'Crosshairs',
+         'MoreTools',

@@ -201,8 +201,6 @@ function createDatabricksPixelsDicom(dcmConfig, servicesManager) {
                 SOPInstanceUID,
               } = naturalizedInstancesMetadata;
 
-              console.log("imageId", imageId)
-
               naturalizedInstancesMetadata.imageId = imageId;
               naturalizedInstancesMetadata.wadoUri = databricksClient.defaults.baseURL + "fs/files/" + instance.relative_path
 

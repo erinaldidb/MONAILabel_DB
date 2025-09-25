@@ -1,0 +1,29 @@
+diff --git a/modes/longitudinal/src/toolbarButtons.ts b/modes/longitudinal/src/toolbarButtons.ts
+index 14c1e9c10..29b14b577 100644
+--- a/modes/longitudinal/src/toolbarButtons.ts
++++ b/modes/longitudinal/src/toolbarButtons.ts
+@@ -490,6 +490,24 @@ const toolbarButtons: Button[] = [
+       ],
+     },
+   },
++  ,
++  {
++    id: 'VLMAnalyzer',
++    uiType: 'ohif.toolButton',
++    props: {
++      icon: 'icon-magic-wand',
++      label: 'VLM Analyzer',
++      tooltip: 'Vision Language Model Analyzer',
++      commands: 'showDownloadVLMViewportModal',
++      evaluate: [
++        'evaluate.action',
++        {
++          name: 'evaluate.viewport.supported',
++          unsupportedViewportTypes: ['video'],
++        },
++      ],
++    },
++  },
+   {
+     id: 'Layout',
+     uiType: 'ohif.layoutSelector',

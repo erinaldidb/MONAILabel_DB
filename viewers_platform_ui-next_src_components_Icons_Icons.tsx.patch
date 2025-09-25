@@ -1,0 +1,28 @@
+diff --git a/platform/ui-next/src/components/Icons/Icons.tsx b/platform/ui-next/src/components/Icons/Icons.tsx
+index 4b06a5b96..52779acef 100644
+--- a/platform/ui-next/src/components/Icons/Icons.tsx
++++ b/platform/ui-next/src/components/Icons/Icons.tsx
+@@ -75,6 +75,7 @@ import IconTransferring from './Sources/IconTransferring';
+ import Alert from './Sources/Alert';
+ import AlertOutline from './Sources/AlertOutline';
+ import Clipboard from './Sources/Clipboard';
++import MagicWandIcon from './Sources/MagicWandIcon';
+ import {
+   Tool3DRotate,
+   ToolAngle,
+@@ -379,6 +380,7 @@ export const Icons = {
+   ),
+   // Icons
+   Clipboard,
++  MagicWandIcon,
+   ActionNewDialog,
+   GroupLayers,
+   Database,
+@@ -722,6 +724,7 @@ export const Icons = {
+   'tool-point': (props: IconProps) => ToolCircle(props),
+   'tool-freehand-line': (props: IconProps) => ToolFreehand(props),
+   clipboard: (props: IconProps) => Clipboard(props),
++  'icon-magic-wand': (props: IconProps) => MagicWandIcon(props),
+   Undo,
+   Redo,
+   JumpToSlice,
