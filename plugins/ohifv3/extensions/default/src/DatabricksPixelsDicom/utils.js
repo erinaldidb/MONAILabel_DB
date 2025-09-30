@@ -18,7 +18,7 @@ function processResults(qidoStudies) {
       time: qidoStudy[2] || '', // HHmmss.SSS (24-hour, minutes, seconds, fractional seconds)
       accession: qidoStudy[3] || '', // short string, probably a number?
       mrn: qidoStudy[4] || '', // medicalRecordNumber
-      patientName: qidoStudy[5].includes("Alphabetic") ? utils.formatPN(getName(JSON.parse(qidoStudy[5]))) : "",
+      patientName: qidoStudy[5] && qidoStudy[5].includes("Alphabetic") ? utils.formatPN(getName(JSON.parse(qidoStudy[5]))) : "",
       description: getString(JSON.parse(qidoStudy[6])) || '',
       modalities: qidoStudy[7] + qidoStudy[8],
       instances: Number(JSON.parse(qidoStudy[9])) || 1, // number

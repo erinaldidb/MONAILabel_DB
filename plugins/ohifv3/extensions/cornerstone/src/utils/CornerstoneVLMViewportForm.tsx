@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import html2canvas from 'html2canvas';
 import { getEnabledElement, StackViewport, BaseVolumeViewport } from '@cornerstonejs/core';
-import { ToolGroupManager, segmentation, Enums } from '@cornerstonejs/tools';
+import { ToolGroupManager, segmentation, Enums, utilities as cstUtils } from '@cornerstonejs/tools';
 import { getEnabledElement as OHIFgetEnabledElement } from '../state';
 import { useSystem } from '@ohif/core/src';
 import axios from "axios";
@@ -18,7 +18,7 @@ const CornerstoneVLMViewportForm = ({
   activeViewportId: activeViewportIdProp,
 }: VLMViewportFormProps) => {
   const { servicesManager } = useSystem();
-  const { uiNotificationService, cornerstoneViewportService, displaySetService, viewportGridService } = servicesManager.services;
+  const { uiNotificationService, cornerstoneViewportService, displaySetService, viewportGridService, segmentationService } = servicesManager.services;
   
   // Get configuration from window.config
   const getConfig = () => {
@@ -55,7 +55,7 @@ const CornerstoneVLMViewportForm = ({
         allowTaint: true,
       });
       
-      return canvas.toDataURL('image/jpeg', .85);
+      return canvas.toDataURL('image/jpeg', .90);
     } catch (error) {
       console.error('Error capturing viewport:', error);
       return null;
@@ -64,14 +64,14 @@ const CornerstoneVLMViewportForm = ({
     }
   };
 
-  // Example prompts for different user types
   const examplePrompts = {
     radiologist: [
       'Identify any abnormalities or lesions in this medical image',
       'Describe the anatomical structures visible in this scan',
       'Assess the image quality and diagnostic value',
       'Is there a non-biological foreign object present in this image? Do not identify the object, just confirm its presence',
-      'Provide differential diagnosis based on the imaging findings'
+      'Provide differential diagnosis based on the imaging findings',
+      "Retrieve this patient's history and create a simplified timeline of their hospitalization"
     ],
     medicalDirector: [
       'Analyze the clinical significance of these imaging findings',
@@ -84,7 +84,7 @@ const CornerstoneVLMViewportForm = ({
       'What do you see in this medical image?',
       'Explain the key findings in simple terms',
       'What should I look for in this type of scan?',
-      'Scan this image for any visible Protected Health Information (PHI) and create a bounding box around it',
+      'Scan this image for any visible PHI in the image or in the metadata',
       'Help me understand what this image shows'
     ]
   };
@@ -130,6 +130,9 @@ const CornerstoneVLMViewportForm = ({
         // Get metadata from the current instance
         const metadata = activeDisplaySet.instance || activeDisplaySet;
         
+        // Extract segmentation information
+        const segmentationInfo = extractSegmentationInfo();
+        
         const dicomMetadata = {
           imageId: metadata.imageId,
           patientName: metadata.PatientName,
@@ -145,12 +148,110 @@ const CornerstoneVLMViewportForm = ({
           seriesInstanceUID: metadata.SeriesInstanceUID,
           sopInstanceUID: metadata.SOPInstanceUID,
           sopClassUID: metadata.SOPClassUID,
+          segmentationInfo: segmentationInfo,
           timestamp: new Date().toISOString(),
         };
         setImageMetadata(dicomMetadata);
       }
     } catch (error) {
       console.error('Error extracting DICOM metadata:', error);
+    }
+  };
+
+  const extractSegmentationInfo = () => {
+    try {
+      const allSegmentations = segmentationService.getSegmentations();
+      if (!allSegmentations?.length) {
+        return {
+          hasSegmentation: false,
+          segmentationCount: 0,
+          segmentations: []
+        };
+      }
+
+      const activeSegmentation = segmentationService.getActiveSegmentation(activeViewportIdProp);
+      const activeSegment = segmentationService.getActiveSegment(activeViewportIdProp);
+
+      // Get segmentation representations for this viewport using OHIF 3.9+ API
+      let segmentationRepresentations = [];
+      try {
+        // Use the viewport-specific segmentation service methods
+        const viewportIdsWithSegmentation = segmentationService.getViewportIdsWithSegmentation();
+        const hasSegmentationInViewport = viewportIdsWithSegmentation.includes(activeViewportIdProp);
+        
+        if (hasSegmentationInViewport) {
+          // Get all segmentations and check which ones are represented in this viewport
+          segmentationRepresentations = allSegmentations.map(seg => ({
+            segmentationId: seg.id,
+            viewportId: activeViewportIdProp,
+            hasRepresentation: true
+          }));
+        }
+      } catch (error) {
+        console.warn('Could not get segmentation representations:', error);
+      }
+
+      // Extract all segments with representation status
+      const visibleSegments = [];
+      
+      allSegmentations.forEach(segmentation => {
+        if (!segmentation) return;
+        
+        // Handle different segment data structures
+        const segments = segmentation.segments;
+        if (!segments) return;
+        
+        // Handle OHIF 3.9+ segment structure (object with numeric keys)
+        const segmentEntries = Object.values(segments);
+        
+        segmentEntries.forEach(segment => {
+          if (!segment) return;
+          
+          // Check if segmentation has representation in this viewport
+          const hasRepresentation = segmentationRepresentations.some(rep => 
+            rep.segmentationId === segmentation.id
+          );
+          
+          const isActive = activeSegmentation?.id === segmentation.id && 
+                          activeSegment?.segmentIndex === segment.segmentIndex;
+          
+          visibleSegments.push({
+            segmentationId: segmentation.id,
+            segmentationLabel: segmentation.label || 'Unnamed Segmentation',
+            segmentIndex: segment.segmentIndex,
+            segmentLabel: segment.label || `Segment ${segment.segmentIndex}`,
+            color: segment.color,
+            locked: segment.locked || false,
+            active: segment.active || false,
+            hasRepresentation,
+            isActive,
+            cachedStats: segment.cachedStats || {}
+          });
+        });
+      });
+
+      return {
+        hasSegmentation: true,
+        segmentationCount: allSegmentations.length,
+        visibleSegmentsCount: visibleSegments.length,
+        visibleSegments,
+        segmentationRepresentations,
+        activeSegmentation: activeSegmentation ? {
+          id: activeSegmentation.id,
+          label: activeSegmentation.label,
+          activeSegmentIndex: activeSegment?.segmentIndex
+        } : null,
+        viewportId: activeViewportIdProp,
+        renderingEngineId
+      };
+    } catch (error) {
+      console.error('Error extracting segmentation info:', error);
+      return {
+        hasSegmentation: false,
+        segmentationCount: 0,
+        segmentations: [],
+        error: 'Failed to extract segmentation data'
+      };
     }
   };
 
@@ -165,7 +266,7 @@ const CornerstoneVLMViewportForm = ({
     }
 
     setIsAnalyzing(true);
-    setShowExamplePrompts(false);
+    //setShowExamplePrompts(false);
     
     try {
       // Capture the current viewport image
@@ -177,29 +278,27 @@ const CornerstoneVLMViewportForm = ({
 
       setCapturedImage(imageDataUrl);
       
-      // Extract base64 data from data URL
       const base64Data = imageDataUrl.split(',')[1];
       
-      // Prepare API payload for Llama 4 Maverick
       const apiPayload = {
-        model: 'databricks-llama-4-maverick',
-        prompt: prompt,
+        model: 'databricks-claude-sonnet-4',
+        prompt,
         image: base64Data,
         metadata: {
           ...imageMetadata,
           imageFormat: 'jpeg',
           timestamp: new Date().toISOString(),
-          userType: 'medical_professional', // Could be determined from user context
+          userType: 'medical_professional'
         },
         max_tokens: 1000,
-        temperature: 0.7,
+        temperature: 0.7
       };
       
-        // Get configuration and build API URL
-        const config = getConfig();
-        const dataSource = config.dataSources?.find((ds: any) => ds.sourceName === 'databricksPixelsDicom');
-        const serverHostname = dataSource?.configuration?.serverHostname || 'http://localhost:8010';
-        const apiUrl = `${serverHostname.replace("/sqlwarehouse", "")}/vlm/analyze`;
+      // Build API URL from configuration
+      const config = getConfig();
+      const dataSource = config.dataSources?.find((ds: any) => ds.sourceName === 'databricksPixelsDicom');
+      const serverHostname = dataSource?.configuration?.serverHostname || 'http://localhost:8010';
+      const apiUrl = `${serverHostname.replace("/sqlwarehouse", "")}/vlm/analyze`;
         
         // Make API call to VLM service
         const response = await axios.post(apiUrl, apiPayload, {
@@ -248,7 +347,7 @@ Note: This is a simulated response. API endpoint not available or configured.`;
 
   const handleExamplePrompt = (promptText: string) => {
     setPrompt(promptText);
-    setShowExamplePrompts(false);
+    //setShowExamplePrompts(false);
     setShowPromptDropdown(false);
   };
 
