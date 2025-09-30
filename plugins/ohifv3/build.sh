@@ -59,12 +59,12 @@ cp ${curr_dir}/../plugins/ohifv3/extensions/default/src/DatabricksPixelsDicom/mu
 # Copy new files and apply Viewers patches for VLM Analyzer
 cp ${curr_dir}/../plugins/ohifv3/extensions/cornerstone/src/utils/CornerstoneVLMViewportForm.tsx extensions/cornerstone/src/utils/CornerstoneVLMViewportForm.tsx
 cp ${curr_dir}/../plugins/ohifv3/platform/ui-next/src/components/Icons/Sources/MagicWandIcon.tsx platform/ui-next/src/components/Icons/Sources/MagicWandIcon.tsx
-
-git apply --reject --whitespace=fix ${curr_dir}/../plugins/ohifv3/viewers_extensions_cornerstone_src_commandsModule.ts.patch
-git apply --reject --whitespace=fix ${curr_dir}/../plugins/ohifv3/viewers_extensions_cornerstone_src_index.tsx.patch
-git apply --reject --whitespace=fix ${curr_dir}/../plugins/ohifv3/viewers_modes_longitudinal_src_index.ts.patch
-git apply --reject --whitespace=fix ${curr_dir}/../plugins/ohifv3/viewers_modes_longitudinal_src_toolbarButtons.ts.patch
-git apply --reject --whitespace=fix ${curr_dir}/../plugins/ohifv3/viewers_platform_ui-next_src_components_Icons_Icons.tsx.patch
+ 
+git apply --reject --whitespace=fix ${curr_dir}/../viewers_extensions_cornerstone_src_commandsModule.ts.patch
+git apply --reject --whitespace=fix ${curr_dir}/../viewers_extensions_cornerstone_src_index.tsx.patch
+git apply --reject --whitespace=fix ${curr_dir}/../viewers_modes_longitudinal_src_index.ts.patch
+git apply --reject --whitespace=fix ${curr_dir}/../viewers_modes_longitudinal_src_toolbarButtons.ts.patch
+git apply --reject --whitespace=fix ${curr_dir}/../viewers_platform_ui-next_src_components_Icons_Icons.tsx.patch
 
 
 yarn config set workspaces-experimental true
