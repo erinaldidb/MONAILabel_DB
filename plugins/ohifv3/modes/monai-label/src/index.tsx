@@ -139,12 +139,15 @@ function modeFactory({ modeConfiguration }) {
     isValidMode: ({ modalities }) => {
       // Don't show the mode if the selected studies have only one modality
       // that is not supported by the mode
-      const modalitiesArray = modalities.split('\\');
+      let modalitiesArray;
+      if (modalities.includes('\\')) {
+        modalitiesArray = modalities.split('\\');
+      } else {
+        modalitiesArray = modalities.split('/');
+      }
       return {
         valid:
-          modalitiesArray.length === 1
-            ? ['CT'].includes(modalitiesArray[0])
-            : false,
+        modalitiesArray.includes('CT'),
         description:
           'The mode support studies that include the following modalities: CT',
       };
