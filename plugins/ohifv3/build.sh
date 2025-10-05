@@ -17,6 +17,9 @@ my_dir="$(dirname "$(readlink -f "$0")")"
 echo "Installing requirements..."
 sh $my_dir/requirements.sh
 
+echo "This build includes the Image Redactor Extension by Emanuele Rinaldi <emanuele.rinaldi@databricks.com>"
+echo "Licensed under Databricks License Agreement - see extensions/image-redactor/LICENSE"
+
 install_dir=${1:-$my_dir/../../monailabel/endpoints/static/ohif}
 
 echo "Current Dir: ${curr_dir}"
@@ -39,7 +42,19 @@ cd modes
 ln -s ../../modes/monai-label monai-label
 cd ..
 
-git apply ../extensions.patch
+# Install Image Redactor Extension
+echo "Installing Image Redactor Extension..."
+cd extensions
+ln -s ${curr_dir}/../plugins/ohifv3/extensions/image-redactor image-redactor
+cd ..
+
+cd modes
+ln -s ${curr_dir}/../plugins/ohifv3/modes/redaction-viewer redaction-viewer
+cd ..
+
+# Apply extensions patch to register monai-label and image-redactor in pluginConfig.json
+echo "Applying extensions patch (registers monai-label and image-redactor)..."
+git apply ${curr_dir}/../plugins/ohifv3/extensions.patch
 
 cp ${curr_dir}/../plugins/ohifv3/config/databricks.js platform/app/public/config/databricks.js
 
@@ -92,5 +107,22 @@ echo "Patching index.html"
 cd ${install_dir}
 sed -i.bak 's/app-config.js/app-config-custom.js/g' index.html && rm index.html.bak
 echo "OHIF for databricks created"
+
+echo ""
+echo "✅ Image Redactor Extension successfully integrated!"
+echo "   - Extension: image-redactor"
+echo "   - Mode: redaction-viewer" 
+echo "   - Author: Emanuele Rinaldi <emanuele.rinaldi@databricks.com>"
+echo "   - License: Databricks License Agreement"
+echo ""
+echo "🎯 Features available:"
+echo "   - Manual rectangle drawing for redaction areas"
+echo "   - Multiple area selection before applying redaction"
+echo "   - Pixel burning (permanent redaction)"
+echo "   - Undo functionality"
+echo "   - Export redacted images as PNG"
+echo ""
+echo "📖 Usage: Select 'Redaction Viewer' mode in OHIF to access redaction tools"
+echo ""
 
 cd ${curr_dir}

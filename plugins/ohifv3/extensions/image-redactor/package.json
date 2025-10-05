@@ -1,0 +1,35 @@
+{
+  "name": "@ohif/extension-image-redactor",
+  "version": "1.0.0",
+  "description": "OHIF extension for manual image redaction with rectangle drawing tools",
+  "author": "Emanuele Rinaldi <emanuele.rinaldi@databricks.com>",
+  "license": "SEE LICENSE IN https://raw.githubusercontent.com/databricks-industry-solutions/pixels/refs/heads/main/LICENSE",
+  "main": "dist/index.umd.js",
+  "module": "src/index.tsx",
+  "files": [
+    "dist/**",
+    "public/**",
+    "README.md"
+  ],
+  "repository": "OHIF/Viewers",
+  "keywords": [
+    "ohif-extension",
+    "medical-imaging",
+    "redaction",
+    "privacy",
+    "dicom"
+  ],
+  "peerDependencies": {
+    "@ohif/core": "^3.0.0",
+    "@ohif/ui": "^3.0.0",
+    "@cornerstonejs/core": "^1.0.0",
+    "@cornerstonejs/tools": "^1.0.0",
+    "react": "^17.0.0 || ^18.0.0",
+    "react-dom": "^17.0.0 || ^18.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "typescript": "^4.9.0"
+  }
+}

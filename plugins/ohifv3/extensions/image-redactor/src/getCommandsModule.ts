@@ -1,0 +1,121 @@
+/*
+OHIF Image Redactor Extension Copyright (2025) Databricks, Inc.
+Author: Emanuele Rinaldi <emanuele.rinaldi@databricks.com>
+
+This library (the "Software") may not be used except in connection with the Licensee's use of the Databricks Platform Services pursuant to an Agreement (defined below) between Licensee (defined below) and Databricks, Inc. ("Databricks"). The Object Code version of the Software shall be deemed part of the Downloadable Services under the Agreement, or if the Agreement does not define Downloadable Services, Subscription Services, or if neither are defined then the term in such Agreement that refers to the applicable Databricks Platform Services (as defined below) shall be substituted herein for "Downloadable Services." Licensee's use of the Software must comply at all times with any restrictions applicable to the Downlodable Services and Subscription Services, generally, and must be used in accordance with any applicable documentation. For the avoidance of doubt, the Software constitutes Databricks Confidential Information under the Agreement. Additionally, and notwithstanding anything in the Agreement to the contrary:
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+* you may view, make limited copies of, and may compile the Source Code version of the Software into an Object Code version of the Software. For the avoidance of doubt, you may not make derivative works of Software (or make any any changes to the Source Code version of the unless you have agreed to separate terms with Databricks permitting such modifications (e.g., a contribution license agreement)).
+If you have not agreed to an Agreement or otherwise do not agree to these terms, you may not use the Software or view, copy or compile the Source Code of the Software. This license terminates automatically upon the termination of the Agreement or Licensee's breach of these terms. Additionally, Databricks may terminate this license at any time on notice. Upon termination, you must permanently delete the Software and all copies thereof (including the Source Code).
+*/
+
+import RedactionService from './services/RedactionService';
+
+export default function getCommandsModule({ servicesManager }) {
+  const { viewportGridService, cornerstoneViewportService } = servicesManager.services;
+
+  const actions = {
+    activateRedactionTool: () => {
+      const { activeViewportId } = viewportGridService.getState();
+      const viewport = cornerstoneViewportService.getCornerstoneViewport(activeViewportId);
+      
+      if (viewport) {
+        const toolGroupId = viewport.viewportOptions?.toolGroupId || 'default';
+        servicesManager.services.toolGroupService.setToolActive(toolGroupId, 'RedactionRectangle', {
+          bindings: [{ mouseButton: 1 }],
+        });
+      }
+    },
+
+    deactivateRedactionTool: () => {
+      const { activeViewportId } = viewportGridService.getState();
+      const viewport = cornerstoneViewportService.getCornerstoneViewport(activeViewportId);
+      
+      if (viewport) {
+        const toolGroupId = viewport.viewportOptions?.toolGroupId || 'default';
+        servicesManager.services.toolGroupService.setToolPassive(toolGroupId, 'RedactionRectangle');
+      }
+    },
+
+    applyRedaction: async () => {
+      const { activeViewportId } = viewportGridService.getState();
+      const viewport = cornerstoneViewportService.getCornerstoneViewport(activeViewportId);
+      
+      if (viewport && viewport.element) {
+        const areas = RedactionService.getRedactionAreas(activeViewportId, viewport.element);
+        return await RedactionService.applyRedaction(activeViewportId, viewport, areas);
+      }
+      
+      return { success: false, error: 'No active viewport found' };
+    },
+
+    undoRedaction: async () => {
+      const { activeViewportId } = viewportGridService.getState();
+      const viewport = cornerstoneViewportService.getCornerstoneViewport(activeViewportId);
+      
+      if (viewport) {
+        return await RedactionService.undoRedaction(activeViewportId, viewport);
+      }
+      
+      return { success: false, error: 'No active viewport found' };
+    },
+
+    clearRedactionAreas: () => {
+      const { activeViewportId } = viewportGridService.getState();
+      const viewport = cornerstoneViewportService.getCornerstoneViewport(activeViewportId);
+      
+      if (viewport && viewport.element) {
+        RedactionService.clearRedactionAreas(activeViewportId, viewport.element);
+      }
+    },
+
+    exportRedactedImage: async () => {
+      const { activeViewportId } = viewportGridService.getState();
+      const viewport = cornerstoneViewportService.getCornerstoneViewport(activeViewportId);
+      
+      if (viewport) {
+        return await RedactionService.exportRedactedImage(activeViewportId, viewport);
+      }
+      
+      return { success: false, error: 'No active viewport found' };
+    },
+  };
+
+  const definitions = {
+    activateRedactionTool: {
+      commandFn: actions.activateRedactionTool,
+      storeContexts: [],
+      options: {},
+    },
+    deactivateRedactionTool: {
+      commandFn: actions.deactivateRedactionTool,
+      storeContexts: [],
+      options: {},
+    },
+    applyRedaction: {
+      commandFn: actions.applyRedaction,
+      storeContexts: [],
+      options: {},
+    },
+    undoRedaction: {
+      commandFn: actions.undoRedaction,
+      storeContexts: [],
+      options: {},
+    },
+    clearRedactionAreas: {
+      commandFn: actions.clearRedactionAreas,
+      storeContexts: [],
+      options: {},
+    },
+    exportRedactedImage: {
+      commandFn: actions.exportRedactedImage,
+      storeContexts: [],
+      options: {},
+    },
+  };
+
+  return {
+    actions,
+    definitions,
+    defaultContext: 'ACTIVE_VIEWPORT::CORNERSTONE',
+  };
+}
